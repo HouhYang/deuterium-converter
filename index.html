@@ -171,8 +171,7 @@
         <div class="input-group">
             <label for="shipType">Ship Type:</label>
             <select id="shipType">
-                <option value="reaper">Reaper</option>
-                <option value="falcon">Falcon</option>
+                <!-- Options will be populated dynamically -->
             </select>
         </div>
 
@@ -263,8 +262,30 @@
 
     <script>
         const ships = {
-            reaper: { metal: 100000, crystal: 65000, deuterium: 10000 },
-            falcon: { metal: 7200000, crystal: 3600000, deuterium: 800000 }
+            reaper: { 
+                name: 'Reaper',
+                metal: 100000, 
+                crystal: 65000, 
+                deuterium: 10000 
+            },
+            falcon: { 
+                name: 'Falcon',
+                metal: 7200000, 
+                crystal: 3600000, 
+                deuterium: 800000 
+            },
+            asteroid_collector: {
+                name: 'Asteroid Collector',
+                metal: 40000,
+                crystal: 20000,
+                deuterium: 8000
+            },
+            light_fighter: {
+                name: 'Light Fighter',
+                metal: 3000,
+                crystal: 1000,
+                deuterium: 0
+            }
         };
 
         function parseAmount(s) {
@@ -394,6 +415,20 @@
         document.getElementById('deuterium').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') calculate();
         });
+
+        // Populate ship dropdown on page load
+        function populateShipDropdown() {
+            const select = document.getElementById('shipType');
+            Object.keys(ships).forEach(key => {
+                const option = document.createElement('option');
+                option.value = key;
+                option.textContent = ships[key].name;
+                select.appendChild(option);
+            });
+        }
+
+        // Initialize on page load
+        populateShipDropdown();
     </script>
 </body>
 </html>
