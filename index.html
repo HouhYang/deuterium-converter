@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deuterium Conversion Optimizer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 800px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        h1 {
+            color: #667eea;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2em;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+        }
+
+        select, input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border 0.3s;
+        }
+
+        select:focus, input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .results {
+            margin-top: 30px;
+            display: none;
+        }
+
+        .results.show {
+            display: block;
+        }
+
+        .section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+
+        .section h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+
+        .stat {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .stat:last-child {
+            border-bottom: none;
+        }
+
+        .stat-label {
+            color: #666;
+            font-weight: 500;
+        }
+
+        .stat-value {
+            color: #333;
+            font-weight: 600;
+        }
+
+        .highlight {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            font-size: 1.5em;
+            margin-bottom: 15px;
+        }
+
+        .copyable {
+            cursor: pointer;
+            position: relative;
+        }
+
+        .copyable:hover {
+            color: #667eea;
+        }
+
+        .copy-tooltip {
+            position: absolute;
+            right: 0;
+            top: -30px;
+            background: #333;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .copy-tooltip.show {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Deuterium Conversion Optimizer</h1>
+        
+        <div class="input-group">
+            <label for="shipType">Ship Type:</label>
+            <select id="shipType">
+                <option value="reaper">Reaper</option>
+                <option value="falcon">Falcon</option>
+            </select>
+        </div>
+
+        <div class="input-group">
+            <label for="deuterium">Available Deuterium:</label>
+            <input type="text" id="deuterium" placeholder="e.g., 100m, 2B, 5t, 50Qd">
+        </div>
+
+        <button onclick="calculate()">Calculate Optimal Conversion</button>
+
+        <div id="results" class="results">
+            <div class="highlight">
+                🚀 Maximum Ships: <span id="maxShips"></span>
+            </div>
+
+            <div class="section">
+                <h3>📊 Ship Costs</h3>
+                <div class="stat">
+                    <span class="stat-label">Metal:</span>
+                    <span class="stat-value" id="shipMetal"></span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">Crystal:</span>
+                    <span class="stat-value" id="shipCrystal"></span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">Deuterium:</span>
+                    <span class="stat-value" id="shipDeut"></span>
+                </div>
+            </div>
+
+            <div class="section">
+                <h3>⚗️ Conversion Plan</h3>
+                <div class="stat">
+                    <span class="stat-label">Total Deuterium:</span>
+                    <span class="stat-value" id="totalDeut"></span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">Deuterium → Metal (1:3):</span>
+                    <span class="stat-value" id="deutForMetal"></span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">Deuterium → Crystal (1:2):</span>
+                    <span class="stat-value" id="deutForCrystal"></span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">Deuterium Reserved:</span>
+                    <span class="stat-value" id="deutReserved"></span>
+                </div>
+            </div>
+
+            <div class="section">
+                <h3>📦 Resources After Conversion</h3>
+                <div class="stat">
+                    <span class="stat-label">Metal:</span>
+                    <span class="stat-value" id="metalProduced"></span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">Crystal:</span>
+                    <span class="stat-value" id="crystalProduced"></span>
+                </div>
+                <div class="stat">
+                    <span class="stat-label">Deuterium:</span>
+                    <span class="stat-value" id="deutAfterConversion"></span>
+                </div>
+            </div>
+
+            <div class="section">
+                <h3>💰 Total Resources Required (Click to Copy)</h3>
+                <div class="stat copyable" onclick="copyToClipboard('totalMetal')">
+                    <span class="stat-label">Metal:</span>
+                    <span class="stat-value" id="totalMetal"></span>
+                    <span class="copy-tooltip" id="tooltip-metal">Copied!</span>
+                </div>
+                <div class="stat copyable" onclick="copyToClipboard('totalCrystal')">
+                    <span class="stat-label">Crystal:</span>
+                    <span class="stat-value" id="totalCrystal"></span>
+                    <span class="copy-tooltip" id="tooltip-crystal">Copied!</span>
+                </div>
+                <div class="stat copyable" onclick="copyToClipboard('totalDeuterium')">
+                    <span class="stat-label">Deuterium:</span>
+                    <span class="stat-value" id="totalDeuterium"></span>
+                    <span class="copy-tooltip" id="tooltip-deuterium">Copied!</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const ships = {
+            reaper: { metal: 100000, crystal: 65000, deuterium: 10000 },
+            falcon: { metal: 7200000, crystal: 3600000, deuterium: 800000 }
+        };
+
+        function parseAmount(s) {
+            s = s.trim();
+            if (!s) throw new Error("Empty input");
+
+            let i = 0;
+            while (i < s.length && (s[i] >= '0' && s[i] <= '9' || s[i] === '.')) i++;
+            if (i === 0) throw new Error("No numeric part");
+
+            const numberPart = s.substring(0, i);
+            const suffix = s.substring(i).trim().toLowerCase();
+
+            const base = parseFloat(numberPart);
+            if (isNaN(base)) throw new Error("Invalid number");
+
+            const multipliers = {
+                '': 1, 'd': 1, 'k': 1e3, 'm': 1e6, 'b': 1e9, 't': 1e12,
+                'qd': 1e15, 'q': 1e15
+            };
+
+            if (!(suffix in multipliers)) throw new Error("Unknown suffix: " + suffix);
+
+            return Math.floor(base * multipliers[suffix]);
+        }
+
+        function formatNumber(num) {
+            if (num >= 1e15) return (num / 1e15).toFixed(2) + 'Qd';
+            if (num >= 1e12) return (num / 1e12).toFixed(2) + 'T';
+            if (num >= 1e9) return (num / 1e9).toFixed(2) + 'B';
+            if (num >= 1e6) return (num / 1e6).toFixed(2) + 'M';
+            if (num >= 1e3) return (num / 1e3).toFixed(2) + 'K';
+            return num.toLocaleString();
+        }
+
+        function calculate() {
+            try {
+                const shipType = document.getElementById('shipType').value;
+                const deutInput = document.getElementById('deuterium').value;
+                const totalDeut = parseAmount(deutInput);
+
+                const ship = ships[shipType];
+                const result = optimizeConversion(totalDeut, ship);
+
+                // Display results
+                document.getElementById('maxShips').textContent = formatNumber(result.maxShips);
+                
+                document.getElementById('shipMetal').textContent = formatNumber(ship.metal);
+                document.getElementById('shipCrystal').textContent = formatNumber(ship.crystal);
+                document.getElementById('shipDeut').textContent = formatNumber(ship.deuterium);
+
+                document.getElementById('totalDeut').textContent = formatNumber(totalDeut);
+                document.getElementById('deutForMetal').textContent = formatNumber(result.deutForMetal);
+                document.getElementById('deutForCrystal').textContent = formatNumber(result.deutForCrystal);
+                document.getElementById('deutReserved').textContent = formatNumber(result.deutReserved);
+
+                document.getElementById('metalProduced').textContent = formatNumber(result.metal);
+                document.getElementById('crystalProduced').textContent = formatNumber(result.crystal);
+                document.getElementById('deutAfterConversion').textContent = formatNumber(result.deutReserved);
+
+                document.getElementById('totalMetal').textContent = result.totalMetal;
+                document.getElementById('totalCrystal').textContent = result.totalCrystal;
+                document.getElementById('totalDeuterium').textContent = result.totalDeuterium;
+
+                document.getElementById('results').classList.add('show');
+            } catch (e) {
+                alert('Error: ' + e.message);
+            }
+        }
+
+        function optimizeConversion(totalDeut, ship) {
+            const { metal: mCost, crystal: cCost, deuterium: dCost } = ship;
+
+            let bestMetal = 0, bestCrystal = 0, bestDeutReserved = totalDeut;
+            let bestDeutForMetal = 0, bestDeutForCrystal = 0, maxShips = 0;
+
+            const splitRatio = (2 * mCost) / (2 * mCost + 3 * cCost);
+            const step = Math.max(1, Math.floor(totalDeut / 10000));
+
+            for (let deutReserved = 0; deutReserved <= totalDeut; deutReserved += step) {
+                const deutAvailable = totalDeut - deutReserved;
+                const deutForMetal = Math.floor(deutAvailable * splitRatio);
+                const deutForCrystal = deutAvailable - deutForMetal;
+
+                const metal = deutForMetal * 3;
+                const crystal = deutForCrystal * 2;
+
+                const shipsByMetal = Math.floor(metal / mCost);
+                const shipsByCrystal = Math.floor(crystal / cCost);
+                const shipsByDeut = deutReserved > 0 ? Math.floor(deutReserved / dCost) : 0;
+
+                const ships = Math.min(shipsByMetal, shipsByCrystal, shipsByDeut);
+
+                if (ships > maxShips) {
+                    maxShips = ships;
+                    bestMetal = metal;
+                    bestCrystal = crystal;
+                    bestDeutReserved = deutReserved;
+                    bestDeutForMetal = deutForMetal;
+                    bestDeutForCrystal = deutForCrystal;
+                }
+            }
+
+            return {
+                maxShips,
+                metal: bestMetal,
+                crystal: bestCrystal,
+                deutReserved: bestDeutReserved,
+                deutForMetal: bestDeutForMetal,
+                deutForCrystal: bestDeutForCrystal,
+                totalMetal: maxShips * mCost,
+                totalCrystal: maxShips * cCost,
+                totalDeuterium: maxShips * dCost
+            };
+        }
+
+        function copyToClipboard(elementId) {
+            const text = document.getElementById(elementId).textContent;
+            navigator.clipboard.writeText(text).then(() => {
+                const tooltip = document.getElementById('tooltip-' + elementId.replace('total', '').toLowerCase());
+                tooltip.classList.add('show');
+                setTimeout(() => tooltip.classList.remove('show'), 1500);
+            });
+        }
+
+        // Allow Enter key to calculate
+        document.getElementById('deuterium').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') calculate();
+        });
+    </script>
+</body>
+</html>
